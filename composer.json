@@ -1,0 +1,40 @@
+{
+    "name": "ka4ivan/laravel-sluggable",
+    "description": "Generate slugs when saving Eloquent models (multilingualism, multigroups, uniqueness)",
+    "keywords": [
+        "laravel", "sluggable", "eloquent", "model", "seo", "multilingual", "unique slug", "slug", "ka4ivan"
+    ],
+    "authors": [
+        {
+            "name": "Kachula Ivan",
+            "email": "ka4ivan.dev@gmail.com",
+            "role": "Developer",
+            "homepage": "https://github.com/ka4ivan"
+        },
+        {
+            "name": "Fomin Vasyl",
+            "email": "fomvasss@gmail.com",
+            "role": "Idea",
+            "homepage": "https://github.com/fomvasss"
+        }
+    ],
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.0.2",
+        "illuminate/support": "^9.0|^10.0|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ka4ivan\\Sluggable\\": "src",
+            "Ka4ivan\\Sluggable\\Database\\Factories\\": "database/factories"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Fomvasss\\Lte3\\ServiceProvider"
+            ]
+        }
+    }
+}
