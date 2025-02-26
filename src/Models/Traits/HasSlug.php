@@ -7,15 +7,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
-//use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
-use function App\Models\Traits\app;
-use function App\Models\Traits\config;
 
 trait HasSlug
 {
-    /** @var string[] Define in your model */
+/**     @var string[] Define in your model      */
 //    public $slugSourceColumns = ['name'];
 //    public $slugGroups = ['uk', 'en'];
 //    public $slugDefaultGroup = 'uk';
@@ -26,28 +23,6 @@ trait HasSlug
 
     protected static function bootHasSlug()
     {
-//        static::retrieved(function($model) {
-//            foreach ($model->appends as $append) {
-//                $model->original[$append] = $model->$append;
-//                $model->attributes[$append] = $model->$append;
-//            }
-//        });
-
-//        static::retrieved(function($model) {
-//            static::addGlobalScope('slug', function ($builder) use ($model) {
-//                $builder->join($model->getSlugTable(), $model->getTable() . '.' . $model->getKeyName(), '=', $model->getSlugTable() . '.model_id')
-//                    ->select($model->getTable() . '.*', $model->getSlugTable() . '.value')
-//                    ->where($model->getTable() . '.' . $model->getKeyName(), $model->getKey());
-//            });
-//        });
-
-//        static::addGlobalScope('slug', function ($builder) {
-//            $self = new static;
-//
-//            $builder->join($self->getSlugTable(), $self->getTable() . '.id', '=', $self->getSlugTable() . '.model_id')
-//                ->select($self->getTable() . '.*', $self->getSlugTable() . '.value');
-//        });
-
         static::created(function ($model) {
             $self = new static;
 
@@ -88,16 +63,20 @@ trait HasSlug
             ->where('group', $group ?: $this->getDefaultGroup());
     }
 
-//    protected function slug(): Attribute
-//    {
-//        return Attribute::make(
-//            get: fn () => $this->slug($this->getDefaultGroup())->value('value'),
-//        );
-//    }
-
     protected function getSlugAttribute(): string|null
     {
         return $this->slugable?->value;
+    }
+
+    public function resolveRouteBinding($value, $field = null): ?Model
+    {
+        if ($field !== 'slug') {
+            return parent::resolveRouteBinding($value, $field);
+        }
+
+        return $this->whereHas('slugable', function ($query) use ($value) {
+            $query->where('value', $value);
+        })->first();
     }
 
     public function getSlugSourceColumns(): array
@@ -203,13 +182,13 @@ trait HasSlug
 
     protected static function otherRecordExistsWithSlug(string $slug, $model, string $group = null): bool
     {
-        $query = self::getSlugModel()->where('value', $slug);
+        $query = self::getSlugModel()::where('value', $slug);
 
         if (!config('slug.unique_for_all_models', false)) {
             $query->where('model_type', $model->getMorphClass());
         }
 
-        if (!config('slug.unique_for_groups', false) && $model->isSlugMultiGroups()) {
+        if (!config('slug.groups.unique', false) && $model->isSlugMultiGroups()) {
                 $query->where('group', $group);
         }
 

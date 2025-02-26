@@ -47,17 +47,17 @@ return [
      */
     'unique_for_all_models' => false,
 
-    /**
-     * Is the slug unique in groups of one model?
-     */
-    'unique_for_groups' => false,
-
     'groups' => [
 
         /**
          * Do you need groups for slugs (multilingualism, etc.)?
          */
         'active' => false,
+
+        /**
+         * Is the slug unique in groups of one model?
+         */
+        'unique' => false,
 
         'list' => ['uk', 'en', 'es'],
 

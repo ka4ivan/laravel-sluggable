@@ -1,6 +1,6 @@
 <?php
 
-namespace Ka4ivan\Sluggable\Commands;
+namespace Ka4ivan\Sluggable\Console;
 
 use Illuminate\Console\Command;
 

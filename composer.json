@@ -33,7 +33,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Fomvasss\\Lte3\\ServiceProvider"
+                "Ka4ivan\\Sluggable\\ServiceProvider"
             ]
         }
     }
