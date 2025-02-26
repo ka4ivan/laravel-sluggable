@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Builder;
 
-trait HasSlug
+trait HasSlugs
 {
 /**     @var string[] Define in your model      */
 //    public $slugSourceColumns = ['name'];
@@ -21,6 +21,11 @@ trait HasSlug
 //    public $slugGenerateIfEmptySource = true;
 //    public $slugMultiGroups = true;
 
+
+    /**
+     * Boot the trait to handle slug generation on model events.
+     * It automatically creates slugs when a model is created and deletes them when a model is deleted.
+     */
     protected static function bootHasSlug()
     {
         static::created(function ($model) {
@@ -36,7 +41,6 @@ trait HasSlug
                             'group' => $group,
                         ]);
                     }
-
                 } else {
                     $model->slugs()->create(['value' => self::slugGenerate($model->makeSlugRawStr(), $model)]);
                 }
@@ -48,13 +52,18 @@ trait HasSlug
         });
     }
 
+    /**
+     * Define a morph many relationship for slugs.
+     */
     public function slugs(): MorphMany
     {
         return $this->morphMany(self::getSlugModel(), 'model');
     }
 
     /**
-     * @param string|null $group
+     * Define a morph one relationship for the main slug.
+     *
+     * @param string|null $group The group of the slug (optional)
      * @return MorphOne
      */
     public function slugable(?string $group = null): MorphOne
@@ -63,11 +72,24 @@ trait HasSlug
             ->where('group', $group ?: $this->getDefaultGroup());
     }
 
+    /**
+     * Accessor for the slug attribute.
+     *
+     * @return string|null
+     */
     protected function getSlugAttribute(): string|null
     {
         return $this->slugable?->value;
     }
 
+    /**
+     * Resolve model binding for routes.
+     * Supports searching by ID or slug.
+     *
+     * @param mixed $value The value used for lookup
+     * @param string|null $field The field to search by
+     * @return Model|null
+     */
     public function resolveRouteBinding($value, $field = null): ?Model
     {
         if ($field !== 'slug') {
@@ -79,6 +101,11 @@ trait HasSlug
         })->first();
     }
 
+    /**
+     * Get the columns used to generate the slug.
+     *
+     * @return array
+     */
     public function getSlugSourceColumns(): array
     {
         if (empty($this->slugSourceColumns)) {
@@ -88,6 +115,11 @@ trait HasSlug
         return $this->slugSourceColumns;
     }
 
+    /**
+     * Get the separator used in the slug.
+     *
+     * @return string
+     */
     public function getSlugSeparator(): string
     {
         if (empty($this->slugSeparator)) {
@@ -97,6 +129,11 @@ trait HasSlug
         return $this->slugSeparator;
     }
 
+    /**
+     * Get the maximum allowed length for the slug.
+     *
+     * @return int
+     */
     public function getSlugMaxLength(): int
     {
         if (empty($this->slugMaxLength)) {
@@ -106,6 +143,11 @@ trait HasSlug
         return $this->slugMaxLength;
     }
 
+    /**
+     * Get the available slug groups.
+     *
+     * @return array
+     */
     public function getSlugGroups(): array
     {
         if (!(isset($this->slugGroups) && is_array($this->slugGroups))) {
@@ -115,6 +157,11 @@ trait HasSlug
         return $this->slugGroups;
     }
 
+    /**
+     * Get the default slug group.
+     *
+     * @return string|null
+     */
     public function getDefaultGroup(): string|null
     {
         if (!$this->isSlugMultiGroups()) {
@@ -128,6 +175,11 @@ trait HasSlug
         return $this->slugDefaultGroup;
     }
 
+    /**
+     * Determine if a slug should be generated when no source value exists.
+     *
+     * @return bool
+     */
     public function isSlugGenerateIfEmptySource(): bool
     {
         if (isset($this->slugGenerateIfEmptySource)) {
@@ -137,6 +189,11 @@ trait HasSlug
         return config('slug.generate_if_empty_source', true);
     }
 
+    /**
+     * Determine if multiple slug groups are enabled.
+     *
+     * @return bool
+     */
     public function isSlugMultiGroups(): bool
     {
         if (isset($this->slugMultiGroups)) {
@@ -146,11 +203,24 @@ trait HasSlug
         return config('slug.groups.active', false);
     }
 
+    /**
+     * Create a raw string for slug generation.
+     *
+     * @return string
+     */
     public function makeSlugRawStr(): string
     {
         return implode($this->getSlugSeparator(), $this->only($this->getSlugSourceColumns()));
     }
 
+    /**
+     * Generate a unique slug.
+     *
+     * @param string $slug
+     * @param Model|null $model
+     * @param string|null $group
+     * @return string
+     */
     public static function slugGenerate(string $slug, ?Model $model = null, string $group = null)
     {
         $model = $model ?: new static();
@@ -159,16 +229,34 @@ trait HasSlug
         return $model->makeUniqueSlug($nonUniqueSlug, $model, $group);
     }
 
+    /**
+     * Convert a raw slug to a slug format.
+     */
     protected static function makeNonUniqueSlug(string $slug, $model): string
     {
         return Str::slug(static::getClippedSlugWithPrefixSuffix($slug, $model), $model->getSlugSeparator(), App::getLocale());
     }
 
+    /**
+     * Clips the slug to the maximum allowed length defined in the model.
+     *
+     * @param string $slug
+     * @param Model $model
+     * @return string
+     */
     protected static function getClippedSlugWithPrefixSuffix(string $slug, $model): string
     {
         return Str::limit($slug, $model->getSlugMaxLength(), '');
     }
 
+    /**
+     * Generates a unique slug by appending a numerical index if the slug already exists.
+     *
+     * @param string $slug
+     * @param Model $model
+     * @param string|null $group
+     * @return string
+     */
     protected function makeUniqueSlug(string $slug, $model, string $group = null): string
     {
         $originalSlug = $slug;
@@ -180,6 +268,14 @@ trait HasSlug
         return $slug;
     }
 
+    /**
+     * Checks whether a given slug already exists in the database.
+     *
+     * @param string $slug
+     * @param Model $model
+     * @param string|null $group
+     * @return bool
+     */
     protected static function otherRecordExistsWithSlug(string $slug, $model, string $group = null): bool
     {
         $query = self::getSlugModel()::where('value', $slug);
@@ -189,7 +285,7 @@ trait HasSlug
         }
 
         if (!config('slug.groups.unique', false) && $model->isSlugMultiGroups()) {
-                $query->where('group', $group);
+            $query->where('group', $group);
         }
 
         $query->whereNot(function ($q) use ($model, $group) {
@@ -201,6 +297,15 @@ trait HasSlug
         return $query->exists();
     }
 
+    /**
+     * Adds a filter by slug to the query.
+     *
+     * @param Builder $query
+     * @param string $value
+     * @param string $method
+     * @param string $operator
+     * @return Builder
+     */
     public function scopeWhereSlug(Builder $query, $value, string $method = 'whereHas', string $operator = '=')
     {
         return $query->{$method}('slugs', function (Builder $query) use ($value, $operator) {
@@ -208,11 +313,21 @@ trait HasSlug
         });
     }
 
+    /**
+     * Retrieves the model class used for storing slugs.
+     *
+     * @return string
+     */
     protected static function getSlugModel()
     {
         return config('slug.model', \Ka4ivan\Sluggable\Models\Slug::class);
     }
 
+    /**
+     * Retrieves the name of the table used for storing slugs.
+     *
+     * @return string
+     */
     protected static function getSlugTable(): string
     {
         return app()->make(self::getSlugModel())->getTable();
