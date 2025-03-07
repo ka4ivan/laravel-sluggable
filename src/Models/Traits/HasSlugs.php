@@ -26,7 +26,7 @@ trait HasSlugs
      * Boot the trait to handle slug generation on model events.
      * It automatically creates slugs when a model is created and deletes them when a model is deleted.
      */
-    protected static function bootHasSlug()
+    protected static function bootHasSlugs()
     {
         static::created(function ($model) {
             $self = new static;

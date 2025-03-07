@@ -14,7 +14,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 
         if (! class_exists('CreateSlugTable')) {
             $this->publishes([
-                __DIR__.'/../database/migrations/create_slugs_table.php.stub' => database_path('migrations/'.date('Y_m_d_His', time()).'_create_slugs_table.php'),
+                __DIR__.'/../database/migrations/create_slugs_table.php.stub' => database_path('migrations/0002_02_02_000001_create_slugs_table.php'),
             ], 'laravel-slug-migrations');
         }
 
