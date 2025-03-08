@@ -5,7 +5,7 @@
 [![Latest Stable Version](https://img.shields.io/packagist/v/ka4ivan/laravel-sluggable.svg?style=for-the-badge)](https://packagist.org/packages/ka4ivan/laravel-sluggable)
 [![Total Downloads](https://img.shields.io/packagist/dt/ka4ivan/laravel-sluggable.svg?style=for-the-badge)](https://packagist.org/packages/ka4ivan/laravel-sluggable)
 
-## 📖 Table of Contents [![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
+## 📖 Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
     - [Preparing your model](#preparing-your-model)
