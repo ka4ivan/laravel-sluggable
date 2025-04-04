@@ -210,6 +210,10 @@ trait HasSlugs
      */
     public function makeSlugRawStr(): string
     {
+        if (!$this->isSlugMultiGroups()) {
+            return implode($this->getSlugSeparator(), [request()->input('slug')] ?: $this->only($this->getSlugSourceColumns()));
+        }
+
         return implode($this->getSlugSeparator(), $this->only($this->getSlugSourceColumns()));
     }
 
