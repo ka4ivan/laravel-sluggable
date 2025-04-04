@@ -47,6 +47,10 @@ trait HasSlugs
             }
         });
 
+        static::saved(function ($model) {
+            return $model->saveSlugs();
+        });
+
         self::deleting(function ($model) {
             $model->slugs()->delete();
         });
@@ -99,6 +103,24 @@ trait HasSlugs
         return $this->whereHas('slugable', function ($query) use ($value) {
             $query->where('value', $value);
         })->first();
+    }
+
+    protected function saveSlugs(): bool
+    {
+        $saved = true;
+
+        foreach ($this->slugs as $slug) {
+            if ($this->isSlugMultiGroups()) {
+                // TODO Дороби збереження для груп через uk:test-slug
+                continue;
+            }
+
+            if ($s = request()->input('slug')) {
+                $saved = $slug->setAttribute('value', self::slugGenerate($s, $this))->save();
+            }
+        }
+
+        return $saved;
     }
 
     /**
@@ -211,8 +233,12 @@ trait HasSlugs
     public function makeSlugRawStr(): string
     {
         if (!$this->isSlugMultiGroups()) {
-            return implode($this->getSlugSeparator(), [request()->input('slug')] ?: $this->only($this->getSlugSourceColumns()));
+            return implode($this->getSlugSeparator(), request()->input('slug')
+                ? [request()->input('slug')]
+                : $this->only($this->getSlugSourceColumns()));
         }
+
+        // TODO Доробити створення для мультигруп
 
         return implode($this->getSlugSeparator(), $this->only($this->getSlugSourceColumns()));
     }
