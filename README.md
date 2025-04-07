@@ -111,12 +111,6 @@ php artisan migrate
 
 To associate slugs with a model, the model must implement the following trait: `HasSlugs`.
 ```php
-<?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Ka4ivan\ModelReleases\Models\Traits\HasReleases;
 
 class Article extends Model
